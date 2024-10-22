@@ -1,5 +1,5 @@
 #include <iostream>
-#include <fstream>  
+#include <fstream> 
 #include <vector>
 #include <string>
 #include <limits>
@@ -74,7 +74,7 @@ int generateId(const std::vector<Resource>& resources) {
 }
 
 // Функция для добавления нового ресурса
-void addResource(std::vector<Resource>& resources) {
+void addResource(std::vector<Resource>& resources, const std::string& filename) {
     Resource newRes;
     newRes.setId(generateId(resources));
 
@@ -119,15 +119,41 @@ void addResource(std::vector<Resource>& resources) {
     newRes.setViews(views);
 
     resources.push_back(newRes);
-    std::cout << "Ресурс успешно добавлен!\n";
+
+    // Сохранение данных в файл после добавления ресурса
+    std::ofstream file(filename);
+    if (!file) {
+        std::cerr << "Ошибка открытия файла для записи.\n";
+        return;
+    }
+
+    for (const auto& res : resources) {
+        res.saveToFile(file);
+    }
+
+    file.close();
+    std::cout << "Ресурс успешно добавлен и сохранен!\n";
 }
 
 // Функция для редактирования ресурса
-void editResource(std::vector<Resource>& resources, int id) {
+void editResource(std::vector<Resource>& resources, int id, const std::string& filename) {
     for (auto& res : resources) {
         if (res.getId() == id) {
             std::cout << "Редактирование ресурса с ID: " << id << "\n";
-            addResource(resources);  // Переприсваиваем значение через ту же функцию добавления
+            addResource(resources, filename);  // Переприсваиваем значение через ту же функцию добавления
+
+            // Сохранение данных в файл после редактирования ресурса
+            std::ofstream file(filename);
+            if (!file) {
+                std::cerr << "Ошибка открытия файла для записи.\n";
+                return;
+            }
+
+            for (const auto& res : resources) {
+                res.saveToFile(file);
+            }
+
+            file.close();
             return;
         }
     }
@@ -135,11 +161,24 @@ void editResource(std::vector<Resource>& resources, int id) {
 }
 
 // Функция для удаления ресурса
-void deleteResource(std::vector<Resource>& resources, int id) {
+void deleteResource(std::vector<Resource>& resources, int id, const std::string& filename) {
     for (auto it = resources.begin(); it != resources.end(); ++it) {
         if (it->getId() == id) {
             resources.erase(it);
             std::cout << "Ресурс с ID: " << id << " успешно удалён.\n";
+
+            // Сохранение данных в файл после удаления ресурса
+            std::ofstream file(filename);
+            if (!file) {
+                std::cerr << "Ошибка открытия файла для записи.\n";
+                return;
+            }
+
+            for (const auto& res : resources) {
+                res.saveToFile(file);
+            }
+
+            file.close();
             return;
         }
     }
@@ -161,22 +200,6 @@ void calculateTotalViews(const std::vector<Resource>& resources) {
         totalViews += res.getViews();
     }
     std::cout << "Общее количество просмотров всех ресурсов: " << totalViews << std::endl;
-}
-
-// Функция для сохранения данных в файл
-void saveData(const std::string& filename, const std::vector<Resource>& resources) {
-    std::ofstream file(filename);
-    if (!file) {
-        std::cerr << "Ошибка открытия файла для записи.\n";
-        return;
-    }
-
-    for (const auto& res : resources) {
-        res.saveToFile(file);
-    }
-
-    file.close();
-    std::cout << "Данные успешно сохранены в файл " << filename << ".\n";
 }
 
 // Функция для загрузки данных из файла
@@ -210,7 +233,7 @@ int main() {
     int choice;
 
     while (true) {
-        std::cout << "\nМеню:\n1. Просмотр всех ресурсов\n2. Добавить ресурс\n3. Редактировать ресурс\n4. Удалить ресурс\n5. Подсчитать просмотры\n6. Сохранить данные в файл\n7. Выйти\n";
+        std::cout << "\nМеню:\n1. Просмотр всех ресурсов\n2. Добавить ресурс\n3. Редактировать ресурс\n4. Удалить ресурс\n5. Подсчитать просмотры\n6. Выйти\n";
         std::cout << "Выберите действие: ";
 
         if (!(std::cin >> choice)) {
@@ -223,23 +246,21 @@ int main() {
         if (choice == 1) {
             displayAll(resources);
         } else if (choice == 2) {
-            addResource(resources);
+            addResource(resources, filename);
         } else if (choice == 3) {
             int id;
             std::cout << "Введите ID ресурса для редактирования: ";
             std::cin >> id;
-            editResource(resources, id);
+            editResource(resources, id, filename);
         } else if (choice == 4) {
             int id;
             std::cout << "Введите ID ресурса для удаления: ";
             std::cin >> id;
-            deleteResource(resources, id);
+            deleteResource(resources, id, filename);
         } else if (choice == 5) {
             calculateTotalViews(resources);
         } else if (choice == 6) {
-            saveData(filename, resources);
-        } else if (choice == 7) {
-            saveData(filename, resources); // Сохранение данных перед выходом
+            std::cout << "Выход из программы...\n";
             break;
         } else {
             std::cout << "Неверный выбор.\n";
@@ -248,3 +269,4 @@ int main() {
 
     return 0;
 }
+
