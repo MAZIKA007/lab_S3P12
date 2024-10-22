@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>  
 #include <vector>
 #include <string>
 #include <limits>
@@ -48,6 +49,17 @@ public:
 
     // Метод для установки ID
     void setId(int newId) { id = newId; }
+
+    // Метод для сохранения ресурса в файл
+    void saveToFile(std::ofstream& file) const {
+        file << id << " " << title << " " << author << " " << category << " "
+             << year << " " << access_link << " " << views << "\n";
+    }
+
+    // Метод для загрузки ресурса из файла
+    void loadFromFile(std::ifstream& file) {
+        file >> id >> title >> author >> category >> year >> access_link >> views;
+    }
 };
 
 // Функция для автоматического присвоения ID
@@ -151,13 +163,54 @@ void calculateTotalViews(const std::vector<Resource>& resources) {
     std::cout << "Общее количество просмотров всех ресурсов: " << totalViews << std::endl;
 }
 
+// Функция для сохранения данных в файл
+void saveData(const std::string& filename, const std::vector<Resource>& resources) {
+    std::ofstream file(filename);
+    if (!file) {
+        std::cerr << "Ошибка открытия файла для записи.\n";
+        return;
+    }
+
+    for (const auto& res : resources) {
+        res.saveToFile(file);
+    }
+
+    file.close();
+    std::cout << "Данные успешно сохранены в файл " << filename << ".\n";
+}
+
+// Функция для загрузки данных из файла
+void loadData(const std::string& filename, std::vector<Resource>& resources) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Ошибка открытия файла для чтения.\n";
+        return;
+    }
+
+    resources.clear(); // Очищаем массив перед загрузкой данных
+    Resource temp;
+    while (file) {
+        temp.loadFromFile(file);
+        if (file) { // Проверка на случай чтения пустой строки
+            resources.push_back(temp);
+        }
+    }
+
+    file.close();
+    std::cout << "Данные успешно загружены из файла " << filename << ".\n";
+}
+
 // Главное меню
 int main() {
     std::vector<Resource> resources;
+    std::string filename = "resources.txt";
+
+    loadData(filename, resources); // Загрузка данных при старте программы
+
     int choice;
 
     while (true) {
-        std::cout << "\nМеню:\n1. Просмотр всех ресурсов\n2. Добавить ресурс\n3. Редактировать ресурс\n4. Удалить ресурс\n5. Подсчитать просмотры\n6. Выйти\n";
+        std::cout << "\nМеню:\n1. Просмотр всех ресурсов\n2. Добавить ресурс\n3. Редактировать ресурс\n4. Удалить ресурс\n5. Подсчитать просмотры\n6. Сохранить данные в файл\n7. Выйти\n";
         std::cout << "Выберите действие: ";
 
         if (!(std::cin >> choice)) {
@@ -184,6 +237,9 @@ int main() {
         } else if (choice == 5) {
             calculateTotalViews(resources);
         } else if (choice == 6) {
+            saveData(filename, resources);
+        } else if (choice == 7) {
+            saveData(filename, resources); // Сохранение данных перед выходом
             break;
         } else {
             std::cout << "Неверный выбор.\n";
