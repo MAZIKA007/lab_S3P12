@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <limits>
 
 // Класс Resource
 class Resource {
@@ -22,29 +23,12 @@ public:
     : id(id), title(title), author(author), category(category), year(year), access_link(access_link), views(views) {}
 
     // Методы для редактирования свойств
-    void setTitle(const std::string& newTitle) {
-        title = newTitle;
-    }
-
-    void setAuthor(const std::string& newAuthor) {
-        author = newAuthor;
-    }
-
-    void setCategory(const std::string& newCategory) {
-        category = newCategory;
-    }
-
-    void setYear(int newYear) {
-        year = newYear;
-    }
-
-    void setAccessLink(const std::string& newLink) {
-        access_link = newLink;
-    }
-
-    void setViews(int newViews) {
-        views = newViews;
-    }
+    void setTitle(const std::string& newTitle) { title = newTitle; }
+    void setAuthor(const std::string& newAuthor) { author = newAuthor; }
+    void setCategory(const std::string& newCategory) { category = newCategory; }
+    void setYear(int newYear) { year = newYear; }
+    void setAccessLink(const std::string& newLink) { access_link = newLink; }
+    void setViews(int newViews) { views = newViews; }
 
     // Методы для получения свойств
     int getId() const { return id; }
@@ -61,85 +45,150 @@ public:
                   << "\nКатегория: " << category << "\nГод: " << year
                   << "\nСсылка: " << access_link << "\nПросмотры: " << views << "\n";
     }
+
+    // Метод для установки ID
+    void setId(int newId) { id = newId; }
 };
 
-// Функция для создания массива объектов
-void createArray(std::vector<Resource>& resources, int n) {
-    for (int i = 0; i < n; ++i) {
-        int id, year, views;
-        std::string title, author, category, access_link;
-
-        std::cout << "Введите данные для ресурса " << i + 1 << " (id, название, автор, категория, год, ссылка, просмотры): ";
-        std::cin >> id >> title >> author >> category >> year >> access_link >> views;
-
-        Resource res(id, title, author, category, year, access_link, views);
-        resources.push_back(res);
-    }
-}
-
-// Функция для редактирования объекта
-void editResource(Resource& resource) {
-    std::string newTitle, newAuthor, newCategory, newLink;
-    int newYear, newViews;
-
-    std::cout << "Введите новые данные для ресурса (название, автор, категория, год, ссылка, просмотры): ";
-    std::cin >> newTitle >> newAuthor >> newCategory >> newYear >> newLink >> newViews;
-
-    resource.setTitle(newTitle);
-    resource.setAuthor(newAuthor);
-    resource.setCategory(newCategory);
-    resource.setYear(newYear);
-    resource.setAccessLink(newLink);
-    resource.setViews(newViews);
-}
-
-// Функция для обработки массива объектов (подсчет общего числа просмотров)
-void processArray(const std::vector<Resource>& resources) {
-    int totalViews = 0;
+// Функция для автоматического присвоения ID
+int generateId(const std::vector<Resource>& resources) {
+    int maxId = 0;
     for (const auto& res : resources) {
-        totalViews += res.getViews();
+        if (res.getId() > maxId) {
+            maxId = res.getId();
+        }
     }
-    std::cout << "Общее количество просмотров: " << totalViews << std::endl;
+    return maxId + 1;
 }
 
-int main() {
-    std::vector<Resource> resources;
+// Функция для добавления нового ресурса
+void addResource(std::vector<Resource>& resources) {
+    Resource newRes;
+    newRes.setId(generateId(resources));
 
-    // Создание объекта с помощью конструктора по умолчанию
-    Resource defaultResource;
+    std::cout << "Введите название ресурса: ";
+    std::cin.ignore();
+    std::string title;
+    std::getline(std::cin, title);
+    newRes.setTitle(title);
 
-    // Создание объекта с помощью конструктора с параметрами
-    Resource paramResource(1, "Title1", "Author1", "Category1", 2021, "www.example.com", 100);
+    std::cout << "Введите автора: ";
+    std::string author;
+    std::getline(std::cin, author);
+    newRes.setAuthor(author);
 
-    // Добавление этих объектов в массив
-    resources.push_back(defaultResource);
-    resources.push_back(paramResource);
+    std::cout << "Введите категорию: ";
+    std::string category;
+    std::getline(std::cin, category);
+    newRes.setCategory(category);
 
-    // Создание массива объектов
-    int n;
-    std::cout << "Сколько объектов хотите добавить? ";
-    std::cin >> n;
-    createArray(resources, n);
+    std::cout << "Введите год: ";
+    int year;
+    while (!(std::cin >> year) || year < 0) {
+        std::cout << "Пожалуйста, введите корректный год: ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    newRes.setYear(year);
 
-    // Просмотр всех объектов
+    std::cout << "Введите ссылку: ";
+    std::cin.ignore();
+    std::string link;
+    std::getline(std::cin, link);
+    newRes.setAccessLink(link);
+
+    std::cout << "Введите количество просмотров: ";
+    int views;
+    while (!(std::cin >> views) || views < 0) {
+        std::cout << "Пожалуйста, введите корректное количество просмотров: ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    newRes.setViews(views);
+
+    resources.push_back(newRes);
+    std::cout << "Ресурс успешно добавлен!\n";
+}
+
+// Функция для редактирования ресурса
+void editResource(std::vector<Resource>& resources, int id) {
+    for (auto& res : resources) {
+        if (res.getId() == id) {
+            std::cout << "Редактирование ресурса с ID: " << id << "\n";
+            addResource(resources);  // Переприсваиваем значение через ту же функцию добавления
+            return;
+        }
+    }
+    std::cout << "Ресурс с таким ID не найден.\n";
+}
+
+// Функция для удаления ресурса
+void deleteResource(std::vector<Resource>& resources, int id) {
+    for (auto it = resources.begin(); it != resources.end(); ++it) {
+        if (it->getId() == id) {
+            resources.erase(it);
+            std::cout << "Ресурс с ID: " << id << " успешно удалён.\n";
+            return;
+        }
+    }
+    std::cout << "Ресурс с таким ID не найден.\n";
+}
+
+// Функция для просмотра всех ресурсов
+void displayAll(const std::vector<Resource>& resources) {
     for (const auto& res : resources) {
         res.display();
         std::cout << "============================\n";
     }
+}
 
-    // Редактирование объекта
-    int idToEdit;
-    std::cout << "Введите ID ресурса для редактирования: ";
-    std::cin >> idToEdit;
-    if (idToEdit >= 0 && idToEdit < resources.size()) {
-        editResource(resources[idToEdit]);
-    } else {
-        std::cout << "Некорректный ID." << std::endl;
+// Функция для подсчета просмотров
+void calculateTotalViews(const std::vector<Resource>& resources) {
+    int totalViews = 0;
+    for (const auto& res : resources) {
+        totalViews += res.getViews();
     }
+    std::cout << "Общее количество просмотров всех ресурсов: " << totalViews << std::endl;
+}
 
-    // Обработка массива объектов (подсчет просмотров)
-    processArray(resources);
+// Главное меню
+int main() {
+    std::vector<Resource> resources;
+    int choice;
+
+    while (true) {
+        std::cout << "\nМеню:\n1. Просмотр всех ресурсов\n2. Добавить ресурс\n3. Редактировать ресурс\n4. Удалить ресурс\n5. Подсчитать просмотры\n6. Выйти\n";
+        std::cout << "Выберите действие: ";
+
+        if (!(std::cin >> choice)) {
+            std::cout << "Пожалуйста, введите корректный выбор.\n";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        if (choice == 1) {
+            displayAll(resources);
+        } else if (choice == 2) {
+            addResource(resources);
+        } else if (choice == 3) {
+            int id;
+            std::cout << "Введите ID ресурса для редактирования: ";
+            std::cin >> id;
+            editResource(resources, id);
+        } else if (choice == 4) {
+            int id;
+            std::cout << "Введите ID ресурса для удаления: ";
+            std::cin >> id;
+            deleteResource(resources, id);
+        } else if (choice == 5) {
+            calculateTotalViews(resources);
+        } else if (choice == 6) {
+            break;
+        } else {
+            std::cout << "Неверный выбор.\n";
+        }
+    }
 
     return 0;
 }
-
